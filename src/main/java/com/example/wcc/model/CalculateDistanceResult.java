@@ -6,6 +6,15 @@ public class CalculateDistanceResult {
 	private double distance;
 	private String distanceUnitType;
 	
+	public CalculateDistanceResult(PostcodeDTO postcodeOne, PostcodeDTO postcodeTwo, double distance,
+			String distanceUnitType) {
+		super();
+		this.postcodeOne = postcodeOne;
+		this.postcodeTwo = postcodeTwo;
+		this.distance = distance;
+		this.distanceUnitType = distanceUnitType;
+	}
+
 	public CalculateDistanceResult() {}
 
 	public void setPostcodeDTOOne(Postcode postcodeObj) {

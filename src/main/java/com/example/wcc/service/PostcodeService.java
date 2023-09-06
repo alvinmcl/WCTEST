@@ -2,21 +2,29 @@ package com.example.wcc.service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.wcc.model.CalculateDistanceResult;
 import com.example.wcc.model.Postcode;
 import com.example.wcc.model.PostcodeDTO;
+import com.example.wcc.model.RequestLog;
 import com.example.wcc.repository.PostcodeRepository;
+import com.example.wcc.repository.RequestLogRepository;
 
 @Service
 public class PostcodeService {
 	@Autowired
-	private PostcodeRepository repository;
+	private PostcodeRepository postcodeRepository;
+	
+	@Autowired
+	private RequestLogRepository requestLogRepository;
 	
 	private final static double EARTH_RADIUS = 6371; // radius in kilometers
 	
@@ -24,9 +32,13 @@ public class PostcodeService {
 	public Optional<CalculateDistanceResult> getCalculateDistance(String postcodeOne, String postcodeTwo) {
 		CalculateDistanceResult tempResultObject = new CalculateDistanceResult();
 		Optional<CalculateDistanceResult> result = Optional.empty();
-		List<Postcode> postcodeList = repository.getPostcodes(new String[] {postcodeOne, postcodeTwo});
+		RequestLog requestLog = new RequestLog();
+		List<Postcode> postcodeList = postcodeRepository.getPostcodes(new String[] {postcodeOne, postcodeTwo});
+		
+		requestLog.setPostcodeOne(postcodeOne);
+		requestLog.setPostcodeTwo(postcodeTwo);
 
-		if(postcodeList != null && !postcodeList.isEmpty()) {
+		if(postcodeList != null && !postcodeList.isEmpty() && postcodeList.size() == 2) {
 			tempResultObject.setPostcodeDTOOne(postcodeList.get(0));
 			tempResultObject.setPostcodeDTOTwo(postcodeList.get(1));
 			tempResultObject.setDistance(new BigDecimal(calculateDistance(tempResultObject.getPostcodeOne().getLatitude(),
@@ -36,18 +48,51 @@ public class PostcodeService {
 			tempResultObject.setDistanceUnitType("km");
 			
 			result = Optional.of(tempResultObject);
+			requestLog.setCalculateDistanceResult(result.orElseGet(CalculateDistanceResult::new));
 		}
+		
+		requestLog.setTimeStamp(Instant.now());
+		requestLogRepository.save(requestLog);
 		
 		return result;
 	}
 	
 	public Optional<PostcodeDTO> getSinglePostcode(String postcode) {
-		Postcode tempPostcode = repository.getSinglePostcode(postcode);
+		Postcode tempPostcode = postcodeRepository.getSinglePostcode(postcode);
 		
 		if (tempPostcode == null) {
 			return Optional.empty();
 		} else {
-			return Optional.of(new PostcodeDTO(repository.getSinglePostcode(postcode)));
+			return Optional.of(new PostcodeDTO(postcodeRepository.getSinglePostcode(postcode)));
+		}
+	}
+	
+	public Optional<PostcodeDTO> updatePostcode(PostcodeDTO postcodeObj) {
+		Optional<Postcode> tempPostcode = postcodeRepository.findByPostcode(postcodeObj.getPostcode());
+		
+		if (tempPostcode.isPresent()) {
+			tempPostcode.get().setLongitude(postcodeObj.getLongitude());
+			tempPostcode.get().setLatitude(postcodeObj.getLatitude());
+			
+			postcodeRepository.save(tempPostcode.get());
+			
+			return Optional.of(new PostcodeDTO(tempPostcode.get()));
+		} else {
+			return Optional.empty();
+		}
+	}
+	
+	public Optional<List<PostcodeDTO>> getAllPostcodeSearchLike(String postcode) {
+		Optional<List<Postcode>> tempPostcode = postcodeRepository.getAllPostcodeSearchLike(postcode);
+		
+		if (tempPostcode.isPresent()) {
+			List<PostcodeDTO> postcodeDTOList = new ArrayList<PostcodeDTO>();
+			
+			tempPostcode.get().forEach(post -> postcodeDTOList.add(new PostcodeDTO(post)));
+			
+			return Optional.ofNullable(postcodeDTOList);
+		} else {
+			return Optional.empty();
 		}
 	}
 	

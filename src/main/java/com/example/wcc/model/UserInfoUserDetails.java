@@ -9,7 +9,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 public class UserInfoUserDetails implements UserDetails{
-	String ROLE_PREFIX = "ROLE_";
+	String ROLE_PREFIX = "ROLE_ADMIN";
 	
 	private String username;
 	private String password;
@@ -36,7 +36,7 @@ public class UserInfoUserDetails implements UserDetails{
 		// TODO Auto-generated method stub
 		List<GrantedAuthority> list = new ArrayList<GrantedAuthority>();
 
-        list.add(new SimpleGrantedAuthority(ROLE_PREFIX + "ADMIN"));
+        list.add(new SimpleGrantedAuthority(ROLE_PREFIX));
 
         return list;
 	}

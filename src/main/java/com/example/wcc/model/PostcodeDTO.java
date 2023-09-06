@@ -22,6 +22,15 @@ public class PostcodeDTO {
 		this.latitude = postcodeObject.getLatitude();
 	}
 	
+	public PostcodeDTO(String postcode, double longitude, double latitude) {
+		super();
+		this.postcode = postcode;
+		this.longitude = longitude;
+		this.latitude = latitude;
+	}
+	
+	public PostcodeDTO() {}
+
 	public String getPostcode() {
 		return postcode;
 	}

@@ -20,6 +20,7 @@ public class Postcode {
 		this.longitude = longitude;
 		this.latitude = latitude;
 	}
+	public Postcode() {	}
 	public String get_id() {
 		return _id;
 	}

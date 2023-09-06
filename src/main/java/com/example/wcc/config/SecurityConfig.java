@@ -9,6 +9,7 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -33,17 +34,15 @@ public class SecurityConfig {
 	
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		 return http.csrf().disable()
-	                .authorizeHttpRequests()
-	                .requestMatchers("/postcode/{postcode}","/user/authenticate/{username}/{password}","/user/createUser/{username}/{password}").permitAll()
-	                .and()
-	                .authorizeHttpRequests().requestMatchers("/postcode/**")
-	                .authenticated().and()
-	                .sessionManagement()
-	                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-	                .and()
-	                .authenticationProvider(authenticationProvider())
-	                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class).build();
+		 return http.csrf(AbstractHttpConfigurer::disable)
+         .authorizeHttpRequests(auth->{
+             auth.requestMatchers("**").permitAll()
+                     .requestMatchers("/postcode/**").authenticated();
+         })
+         .sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+         .authenticationProvider(authenticationProvider())
+         .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+         .build();
 	}
 	
 	@Bean
@@ -58,7 +57,7 @@ public class SecurityConfig {
 		authenticationProvider.setUserDetailsService(userDetailsService());
 		authenticationProvider.setPasswordEncoder(passwordEncoder());
 		
-		return authenticationProvider();
+		return authenticationProvider;
 	}
 	
 	@Bean

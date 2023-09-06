@@ -44,7 +44,7 @@ public class UserController {
 	
 	@PostMapping("/authenticate/{username}/{password}")
 	public String authenticateAndGenerateToken(@PathVariable String username, @PathVariable String password) {
-		Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+		Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username,password));
 			
 		if (authentication.isAuthenticated()) {
 			return jwtService.generateToken(username);
